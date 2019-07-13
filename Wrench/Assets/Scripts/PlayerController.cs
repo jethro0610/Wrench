@@ -8,11 +8,10 @@ public class PlayerController : MonoBehaviour
     new Rigidbody2D rigidbody;
 
     [SerializeField]
-    float maxMoveSpeed,
-    groundFriction,
-    airFriction,
-    gravitySpeed,
-    groundDistance;
+    float maxMoveSpeed = 150.0f,
+    groundFriction = 0.75f,
+    airFriction = 0.15f,
+    gravitySpeed = 10;
 
     float groundAcceleration {
         get {
