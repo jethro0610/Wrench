@@ -9,9 +9,13 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField]
     float maxMoveSpeed = 150.0f,
-    groundFriction = 0.75f,
-    airFriction = 0.15f,
-    gravitySpeed = 10;
+    groundFriction = 0.3f,
+    airFriction = 0.05f,
+    gravitySpeed = 10,
+    jumpStrength = 250.0f,
+    jumpStopSpeed = 0.8f;
+
+    bool isJumping;
 
     float groundAcceleration {
         get {
@@ -22,6 +26,12 @@ public class PlayerController : MonoBehaviour
     float airAcceleration {
         get {
             return (maxMoveSpeed * airFriction) / (-airFriction + 1.0f);
+        }
+    }
+
+    float jumpStopMult {
+        get {
+            return 1.0f - jumpStopSpeed;
         }
     }
 
@@ -38,14 +48,22 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetButtonDown("Jump")) {
+            Jump();
+        }
+
+        if (Input.GetButtonUp("Jump") && isJumping) {
+            isJumping = false;
+            rigidbody.velocity = new Vector2(rigidbody.velocity.x, rigidbody.velocity.y * jumpStopMult);
+        }
     }
 
     void FixedUpdate() {
         ContactPoint2D? groundContactPoint = GetGroundContactPoint();
         if (groundContactPoint != null && groundContactPoint.Value.collider != collider) {
-            //Set gravity to zero
-            rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0.0f);
+            //Set gravity to zero if falling
+            if(rigidbody.velocity.y < 0.0f)
+                rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0.0f);
             //Move based on input
             rigidbody.velocity += new Vector2(groundAcceleration * Input.GetAxis("Horizontal"), 0.0f);
             //Apply friction
@@ -59,6 +77,9 @@ public class PlayerController : MonoBehaviour
             //Apply friction
             rigidbody.velocity += new Vector2(-rigidbody.velocity.x * airFriction, 0.0f);
         }
+
+        if (rigidbody.velocity.y <= 0.0f)
+            isJumping = false;
     }
     
     public float GetHalfHeight() {
@@ -91,5 +112,10 @@ public class PlayerController : MonoBehaviour
         else {
             return null;
         }
+    }
+
+    public void Jump() {
+        isJumping = true;
+        rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpStrength);
     }
 }
