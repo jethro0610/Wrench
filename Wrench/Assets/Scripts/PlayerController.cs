@@ -56,6 +56,10 @@ public class PlayerController : MonoBehaviour
             isJumping = false;
             rigidbody.velocity = new Vector2(rigidbody.velocity.x, rigidbody.velocity.y * jumpStopMult);
         }
+
+        if (Input.GetButtonDown("Fire1")) {
+            controlledWrench.Throw();
+        }
     }
 
     void FixedUpdate() {
