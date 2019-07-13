@@ -115,7 +115,9 @@ public class PlayerController : MonoBehaviour
     }
 
     public void Jump() {
-        isJumping = true;
-        rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpStrength);
+        if (GetGroundContactPoint().HasValue) {
+            isJumping = true;
+            rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpStrength);
+        }
     }
 }
