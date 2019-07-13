@@ -8,14 +8,21 @@ public class PlayerController : MonoBehaviour
     new Rigidbody2D rigidbody;
 
     [SerializeField]
-    float maxGroundSpeed,
-    friction,
+    float maxMoveSpeed,
+    groundFriction,
+    airFriction,
     gravitySpeed,
     groundDistance;
 
     float groundAcceleration {
         get {
-            return (maxGroundSpeed * friction) / (-friction + 1.0f);
+            return (maxMoveSpeed * groundFriction) / (-groundFriction + 1.0f);
+        }
+    }
+
+    float airAcceleration {
+        get {
+            return (maxMoveSpeed * airFriction) / (-airFriction + 1.0f);
         }
     }
 
@@ -36,19 +43,22 @@ public class PlayerController : MonoBehaviour
     }
 
     void FixedUpdate() {
-        RaycastHit2D initialGroundRaycast = GetGroundRaycast();
-        if (initialGroundRaycast && initialGroundRaycast.collider != collider) {
-            //Stick to ground
-            transform.position = new Vector2(transform.position.x, initialGroundRaycast.point.y + GetHalfHeight());
+        ContactPoint2D? groundContactPoint = GetGroundContactPoint();
+        if (groundContactPoint != null && groundContactPoint.Value.collider != collider) {
             //Set gravity to zero
             rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0.0f);
             //Move based on input
             rigidbody.velocity += new Vector2(groundAcceleration * Input.GetAxis("Horizontal"), 0.0f);
             //Apply friction
-            rigidbody.velocity += new Vector2(-rigidbody.velocity.x * friction, 0.0f);
+            rigidbody.velocity += new Vector2(-rigidbody.velocity.x * groundFriction, 0.0f);
         }
         else {
+            //Apply gravity
             rigidbody.velocity += new Vector2(0.0f, -gravitySpeed);
+            //Move based on input
+            rigidbody.velocity += new Vector2(airAcceleration * Input.GetAxis("Horizontal"), 0.0f);
+            //Apply friction
+            rigidbody.velocity += new Vector2(-rigidbody.velocity.x * airFriction, 0.0f);
         }
     }
     
@@ -60,8 +70,27 @@ public class PlayerController : MonoBehaviour
         return transform.position - new Vector3(0.0f, GetHalfHeight());
     }
 
-    public RaycastHit2D GetGroundRaycast() {
-        Debug.DrawRay(GetBottomOrigin(), -transform.up);
-        return Physics2D.Raycast(GetBottomOrigin(), -transform.up, groundDistance);
+    public ContactPoint2D? GetGroundContactPoint() {
+        bool foundGroundPoint = false;
+        ContactPoint2D returnPoint = new ContactPoint2D();
+
+        //Get contact points on collider
+        List<ContactPoint2D> contacts  = new List<ContactPoint2D>();
+        collider.GetContacts(contacts);
+
+        foreach(ContactPoint2D contactPoint in contacts) {
+            //Check if contact point is on bottom
+            if (contactPoint.point.y < transform.position.y) {
+                returnPoint = contactPoint;
+                foundGroundPoint = true;
+            }
+        }
+
+        if (foundGroundPoint) {
+            return returnPoint;
+        }
+        else {
+            return null;
+        }
     }
 }
