@@ -13,7 +13,11 @@ public class PlayerController : MonoBehaviour
     airFriction = 0.05f,
     gravitySpeed = 10,
     jumpStrength = 250.0f,
-    jumpStopSpeed = 0.8f;
+    jumpStopSpeed = 0.8f,
+    maxMagnetToWrenchSpeed = 10.0f,
+    magnetToWrenchAcceleration = 0.8f,
+    screwReleaseSpeedX = 500.0f,
+    screwReleaseSpeedY = 300.0f;
 
     bool isJumping;
 
@@ -36,6 +40,7 @@ public class PlayerController : MonoBehaviour
     }
 
     public WrenchController controlledWrench { get; private set; }
+    public bool isMagnetingToWrench { get; private set; }
 
     // Start is called before the first frame update
     void Start()
@@ -48,6 +53,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //GetComponentInChildren<Camera>().transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         if (Input.GetButtonDown("Jump")) {
             Jump();
         }
@@ -60,30 +66,66 @@ public class PlayerController : MonoBehaviour
         if (Input.GetButtonDown("Fire1")) {
             controlledWrench.Throw();
         }
+
+        if (!Input.GetButton("Fire1")) {
+            controlledWrench.ForceReturn();
+        }
+
+        if (Input.GetButton("Fire2")) {
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.OnScrew)
+                isMagnetingToWrench = true;
+        }
+        else {
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.OnScrew)
+                isMagnetingToWrench = false;
+        }
+
+        if (Input.GetButtonUp("Fire2")) {
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
+                rigidbody.velocity = (Vector2.up * transform.right.y * screwReleaseSpeedY) + (Vector2.right * transform.right.x * screwReleaseSpeedX);
+                controlledWrench.ParentToPlayer();
+            }
+        }
     }
 
     void FixedUpdate() {
-        ContactPoint2D? groundContactPoint = GetGroundContactPoint();
-        if (groundContactPoint != null && groundContactPoint.Value.collider != collider) {
-            //Set gravity to zero if falling
-            if(rigidbody.velocity.y < 0.0f)
-                rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0.0f);
-            //Move based on input
-            rigidbody.velocity += new Vector2(groundAcceleration * Input.GetAxis("Horizontal"), 0.0f);
-            //Apply friction
-            rigidbody.velocity += new Vector2(-rigidbody.velocity.x * groundFriction, 0.0f);
-        }
-        else {
-            //Apply gravity
-            rigidbody.velocity += new Vector2(0.0f, -gravitySpeed);
-            //Move based on input
-            rigidbody.velocity += new Vector2(airAcceleration * Input.GetAxis("Horizontal"), 0.0f);
-            //Apply friction
-            rigidbody.velocity += new Vector2(-rigidbody.velocity.x * airFriction, 0.0f);
+        if (!isMagnetingToWrench && controlledWrench.wrenchState != WrenchController.WrenchState.ScrewPlayerRotation) {
+            rigidbody.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0.0f, 0.0f, 0.0f), 0.25f).eulerAngles.z;
+
+            ContactPoint2D? groundContactPoint = GetGroundContactPoint();
+            if (groundContactPoint != null && groundContactPoint.Value.collider != collider) {
+                //Set gravity to zero if falling
+                if (rigidbody.velocity.y < 0.0f)
+                    rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0.0f);
+                //Move based on input
+                rigidbody.velocity += new Vector2(groundAcceleration * Input.GetAxis("Horizontal"), 0.0f);
+                //Apply friction
+                rigidbody.velocity += new Vector2(-rigidbody.velocity.x * groundFriction, 0.0f);
+            }
+            else {
+                //Apply gravity
+                rigidbody.velocity += new Vector2(0.0f, -gravitySpeed);
+                //Move based on input
+                rigidbody.velocity += new Vector2(airAcceleration * Input.GetAxis("Horizontal"), 0.0f);
+                //Apply friction
+                rigidbody.velocity += new Vector2(-rigidbody.velocity.x * airFriction, 0.0f);
+            }
+
+            if (rigidbody.velocity.y <= 0.0f)
+                isJumping = false;
         }
 
-        if (rigidbody.velocity.y <= 0.0f)
-            isJumping = false;
+        if(isMagnetingToWrench) {
+            Vector2 direction = GetDirectionTowardsLocation(controlledWrench.transform.position);
+            rigidbody.velocity = Vector2.Lerp(rigidbody.velocity, direction * maxMagnetToWrenchSpeed, magnetToWrenchAcceleration);
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
+                isMagnetingToWrench = false;
+                rigidbody.velocity = Vector2.zero;
+                transform.rotation = controlledWrench.transform.rotation * Quaternion.Euler(Vector3.forward * -90.0f);
+                transform.parent = controlledWrench.transform;
+                transform.localPosition = new Vector2(-5.0f, 0.0f);
+            }
+        }
     }
     
     public float GetHalfHeight() {
@@ -123,5 +165,9 @@ public class PlayerController : MonoBehaviour
             isJumping = true;
             rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpStrength);
         }
+    }
+
+    public Vector3 GetDirectionTowardsLocation(Vector3 Location) {
+        return (Location - transform.position).normalized;
     }
 }
