@@ -93,7 +93,7 @@ public class WrenchController : MonoBehaviour
         }
 
         if(wrenchState == WrenchState.ScrewPlayerRotation) {
-            float newRotation = transform.rotation.eulerAngles.z + screwSpinSpeed;
+            float newRotation = transform.rotation.eulerAngles.z + screwSpinSpeed * owningPlayer.directionMultiplier;
             Transform transformAroundPoint = GetTransformAroundPoint2D(attachedScrew.transform.position, newRotation);
             rigidbody.position = transformAroundPoint.position;
             rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;

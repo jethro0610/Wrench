@@ -7,6 +7,12 @@ public class PlayerController : MonoBehaviour
     new BoxCollider2D collider;
     new Rigidbody2D rigidbody;
 
+    public enum Direction { Right, Left };
+    public Direction direction { get; private set; } = Direction.Right;
+
+    [SerializeField]
+    GameObject playerModel;
+
     [SerializeField]
     float maxMoveSpeed = 150.0f,
     groundFriction = 0.3f,
@@ -39,6 +45,19 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public float directionMultiplier {
+        get {
+            float directionMult = 1.0f;
+            if (direction == PlayerController.Direction.Right) {
+                directionMult = 1.0f;
+            }
+            else {
+                directionMult = -1.0f;
+            }
+            return directionMult;
+        }
+    }
+
     public WrenchController controlledWrench { get; private set; }
     public bool isMagnetingToWrench { get; private set; }
 
@@ -53,7 +72,19 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        GetComponentInChildren<Camera>().transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        //GetComponentInChildren<Camera>().transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+
+        if(direction == Direction.Right) {
+            playerModel.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        }
+        else {
+            playerModel.transform.localRotation = Quaternion.Euler(0.0f, 180.0f, 0.0f);
+        }
+
+        HandleInput();
+    }
+
+    void HandleInput() {
         if (Input.GetButtonDown("Jump")) {
             Jump();
         }
@@ -69,7 +100,7 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButtonUp("Fire1")) {
             if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
-                rigidbody.velocity = (Vector2.up * transform.right.y * screwReleaseSpeedY) + (Vector2.right * transform.right.x * screwReleaseSpeedX);
+                rigidbody.velocity = (directionMultiplier * Vector2.up * transform.right.y * screwReleaseSpeedY) + (directionMultiplier * Vector2.right * transform.right.x * screwReleaseSpeedX);
                 controlledWrench.ParentToPlayer();
             }
         }
@@ -86,6 +117,12 @@ public class PlayerController : MonoBehaviour
             if (controlledWrench.wrenchState == WrenchController.WrenchState.OnScrew)
                 isMagnetingToWrench = false;
         }
+
+        if (Input.GetAxis("Horizontal") > 0.0f)
+            direction = Direction.Right;
+
+        if (Input.GetAxis("Horizontal") < 0.0f)
+            direction = Direction.Left;
     }
 
     void FixedUpdate() {
