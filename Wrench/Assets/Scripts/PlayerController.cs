@@ -28,10 +28,13 @@ public class PlayerController : MonoBehaviour
     maxMagnetToWrenchSpeed = 10.0f,
     magnetToWrenchAcceleration = 0.8f,
     screwReleaseSpeedX = 500.0f,
-    screwReleaseSpeedY = 300.0f;
+    screwReleaseSpeedY = 300.0f,
+    respawnHeight = -200.0f;
 
     bool isJumping;
     public GameObject wrenchTarget { get; private set; }
+
+    Vector2 spawnPos;
 
     float groundAcceleration {
         get {
@@ -82,12 +85,18 @@ public class PlayerController : MonoBehaviour
         collider = GetComponent<BoxCollider2D>();
         rigidbody = GetComponent<Rigidbody2D>();
         animator = GetComponentInChildren<Animator>();
+        spawnPos = transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
         transform.position = (Vector2)transform.position;
+
+        if(transform.position.y < respawnHeight) {
+            Respawn();
+        }
+
         if(direction == Direction.Right) {
             playerModel.transform.localRotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
         }
@@ -346,5 +355,12 @@ public class PlayerController : MonoBehaviour
             }
         }
         return returnTarget;
+    }
+
+    public void Respawn() {
+        rigidbody.velocity = Vector2.zero;
+        rigidbody.rotation = 0.0f;
+        transform.position = spawnPos;
+        controlledWrench.ParentToPlayer();
     }
 }
