@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //GetComponentInChildren<Camera>().transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        GetComponentInChildren<Camera>().transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         if (Input.GetButtonDown("Jump")) {
             Jump();
         }
@@ -67,6 +67,13 @@ public class PlayerController : MonoBehaviour
             controlledWrench.Throw();
         }
 
+        if (Input.GetButtonUp("Fire1")) {
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
+                rigidbody.velocity = (Vector2.up * transform.right.y * screwReleaseSpeedY) + (Vector2.right * transform.right.x * screwReleaseSpeedX);
+                controlledWrench.ParentToPlayer();
+            }
+        }
+
         if (!Input.GetButton("Fire1")) {
             controlledWrench.ForceReturn();
         }
@@ -78,13 +85,6 @@ public class PlayerController : MonoBehaviour
         else {
             if (controlledWrench.wrenchState == WrenchController.WrenchState.OnScrew)
                 isMagnetingToWrench = false;
-        }
-
-        if (Input.GetButtonUp("Fire2")) {
-            if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
-                rigidbody.velocity = (Vector2.up * transform.right.y * screwReleaseSpeedY) + (Vector2.right * transform.right.x * screwReleaseSpeedX);
-                controlledWrench.ParentToPlayer();
-            }
         }
     }
 
@@ -116,10 +116,12 @@ public class PlayerController : MonoBehaviour
         }
 
         if(isMagnetingToWrench) {
+            if (controlledWrench.wrenchState != WrenchController.WrenchState.OnScrew)
+                isMagnetingToWrench = false;
+
             Vector2 direction = GetDirectionTowardsLocation(controlledWrench.transform.position);
             rigidbody.velocity = Vector2.Lerp(rigidbody.velocity, direction * maxMagnetToWrenchSpeed, magnetToWrenchAcceleration);
             if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
-                isMagnetingToWrench = false;
                 rigidbody.velocity = Vector2.zero;
                 transform.rotation = controlledWrench.transform.rotation * Quaternion.Euler(Vector3.forward * -90.0f);
                 transform.parent = controlledWrench.transform;

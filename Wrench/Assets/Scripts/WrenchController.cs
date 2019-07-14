@@ -5,12 +5,13 @@ using UnityEngine;
 public class WrenchController : MonoBehaviour
 {
     private PlayerController owningPlayer;
+    new Rigidbody2D rigidbody;
 
     public enum WrenchState { Throw, ThrowEnd, Return, WithPlayer, OnScrew, ScrewPlayerRotation };
     public WrenchState wrenchState { get; private set; } = WrenchState.WithPlayer;
 
     [SerializeField]
-    Vector3 holdOffset,
+    Vector2 holdOffset,
     screwOffset;
 
     [SerializeField]
@@ -21,7 +22,7 @@ public class WrenchController : MonoBehaviour
     throwEndWait = 0.1f,
     screwSpinSpeed = 10.0f;
     
-    Vector3 throwEndDirection;
+    Vector2 throwEndDirection;
     float throwEndSpeed;
 
     float returnSpeed;
@@ -33,6 +34,7 @@ public class WrenchController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        rigidbody = GetComponent<Rigidbody2D>();
         owningPlayer = GetComponentInParent<PlayerController>();   
     }
 
@@ -44,11 +46,11 @@ public class WrenchController : MonoBehaviour
 
     void FixedUpdate() {
         if (wrenchState == WrenchState.Throw) {
-            transform.rotation *= Quaternion.Euler(Vector3.forward * -100.0f);
+            rigidbody.rotation -= -100.0f;
 
-            transform.position += GetDirectionTowardsLocation(throwPosition) * maxThrowSpeed;
+            rigidbody.position += GetDirectionTowardsLocation(throwPosition) * maxThrowSpeed;
 
-            if(Vector2.Distance(transform.position, throwPosition) < 30.0f) {
+            if(Vector2.Distance(rigidbody.position, throwPosition) < 30.0f) {
                 EndThrow();
             }
         }
@@ -56,9 +58,9 @@ public class WrenchController : MonoBehaviour
         if(wrenchState == WrenchState.ThrowEnd) {
             throwEndSpeed = Mathf.Lerp(throwEndSpeed, 0.0f, throwEndWait);
 
-            transform.rotation = Quaternion.Lerp(transform.rotation, GetLookAwayRotation2D(owningPlayer.transform.position), 1.0f - (throwEndSpeed / maxThrowSpeed));
+            rigidbody.rotation = Quaternion.Lerp(transform.rotation, GetLookAwayRotation2D(owningPlayer.transform.position), 1.0f - (throwEndSpeed / maxThrowSpeed)).eulerAngles.z;
 
-            transform.position += throwEndDirection * throwEndSpeed;
+            rigidbody.position += throwEndDirection * throwEndSpeed;
             if (throwEndSpeed < 0.25f) {
                 StartReturn();
             }
@@ -67,22 +69,22 @@ public class WrenchController : MonoBehaviour
         if (wrenchState == WrenchState.Return) {
             returnSpeed = Mathf.Lerp(returnSpeed, maxReturnSpeed, returnAcceleration);
 
-            transform.rotation = Quaternion.Lerp(transform.rotation, GetLookAwayRotation2D(owningPlayer.transform.position), 0.5f);
+            rigidbody.rotation = Quaternion.Lerp(transform.rotation, GetLookAwayRotation2D(owningPlayer.transform.position), 0.5f).eulerAngles.z;
 
-            transform.position += GetDirectionTowardsLocation(owningPlayer.transform.position) * returnSpeed;
-            if (Vector2.Distance(transform.position, owningPlayer.transform.position) < returnSpeed/2.0f) {
+            rigidbody.position += GetDirectionTowardsLocation(owningPlayer.transform.position) * returnSpeed;
+            if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) < returnSpeed/2.0f) {
                 ParentToPlayer();
             }
         }
 
         if(wrenchState == WrenchState.OnScrew) {
             if (owningPlayer.isMagnetingToWrench) {
-                if (Vector2.Distance(transform.position, owningPlayer.transform.position) > 5.0f) {
+                if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) > 5.0f) {
                     float rotationTowardsPlayer = GetLookAwayRotation2D(owningPlayer.transform.position).eulerAngles.z;
                     float lerpedRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.z, rotationTowardsPlayer, 0.25f);
                     Transform transformAroundPoint = GetTransformAroundPoint2D(attachedScrew.transform.position, lerpedRotation);
-                    transform.position = transformAroundPoint.position;
-                    transform.rotation = transformAroundPoint.rotation;
+                    rigidbody.position = transformAroundPoint.position;
+                    rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
                 }
                 else {
                     wrenchState = WrenchState.ScrewPlayerRotation;
@@ -93,13 +95,13 @@ public class WrenchController : MonoBehaviour
         if(wrenchState == WrenchState.ScrewPlayerRotation) {
             float newRotation = transform.rotation.eulerAngles.z + screwSpinSpeed;
             Transform transformAroundPoint = GetTransformAroundPoint2D(attachedScrew.transform.position, newRotation);
-            transform.position = transformAroundPoint.position;
-            transform.rotation = transformAroundPoint.rotation;
+            rigidbody.position = transformAroundPoint.position;
+            rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
         }
     }
 
-    public Vector3 GetDirectionTowardsLocation(Vector3 Location) {
-        return (Location - transform.position).normalized;
+    public Vector2 GetDirectionTowardsLocation(Vector2 Location) {
+        return (Location - (Vector2)transform.position).normalized;
     }
 
     public void Throw() {
@@ -125,7 +127,7 @@ public class WrenchController : MonoBehaviour
 
     public void ForceReturn() {
         EndThrow();
-        if (wrenchState == WrenchState.OnScrew || wrenchState == WrenchState.ScrewPlayerRotation) {
+        if (wrenchState == WrenchState.OnScrew) {
             StartReturn();
         }
     }
