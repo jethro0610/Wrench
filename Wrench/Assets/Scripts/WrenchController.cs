@@ -7,12 +7,12 @@ public class WrenchController : MonoBehaviour
     private PlayerController owningPlayer;
     new Rigidbody2D rigidbody;
 
-    public enum WrenchState { Throw, ThrowEnd, Return, WithPlayer, OnScrew, ScrewPlayerRotation };
+    public enum WrenchState { Throw, ThrowEnd, Return, WithPlayer, Attached, GrabAttach };
     public WrenchState wrenchState { get; private set; } = WrenchState.WithPlayer;
 
     [SerializeField]
     Vector2 holdOffset,
-    screwOffset;
+    attachOffset;
 
     [SerializeField]
     float maxThrowSpeed = 10.0f,
@@ -28,7 +28,9 @@ public class WrenchController : MonoBehaviour
 
     public Vector2 throwPosition { get; private set; }
 
-    public GameObject attachedScrew { get; private set; }
+    public GameObject attachedObject { get; private set; }
+
+    Quaternion attachRotation;
 
     // Start is called before the first frame update
     void Start()
@@ -48,7 +50,7 @@ public class WrenchController : MonoBehaviour
             rigidbody.rotation -= -100.0f;
 
             rigidbody.position += GetDirectionTowardsLocation(throwPosition) * maxThrowSpeed;
-
+            attachRotation = GetLookRotation2D(throwPosition);
             if(Vector2.Distance(rigidbody.position, throwPosition) < 30.0f) {
                 EndThrow();
             }
@@ -60,6 +62,7 @@ public class WrenchController : MonoBehaviour
             rigidbody.rotation = Quaternion.Lerp(transform.rotation, GetLookAwayRotation2D(owningPlayer.transform.position), 1.0f - (throwEndSpeed / maxThrowSpeed)).eulerAngles.z;
 
             rigidbody.position += throwEndDirection * throwEndSpeed;
+            attachRotation = GetLookRotation2D(throwPosition);
             if (throwEndSpeed < 0.25f) {
                 StartReturn();
             }
@@ -71,31 +74,36 @@ public class WrenchController : MonoBehaviour
             rigidbody.rotation = Quaternion.Lerp(transform.rotation, GetLookAwayRotation2D(owningPlayer.transform.position), 0.5f).eulerAngles.z;
 
             rigidbody.position += GetDirectionTowardsLocation(owningPlayer.transform.position) * returnSpeed;
+            attachRotation = GetLookAwayRotation2D(throwPosition);
             if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) < returnSpeed/2.0f) {
                 ParentToPlayer();
             }
         }
 
-        if(wrenchState == WrenchState.OnScrew) {
+        if (wrenchState == WrenchState.Attached) {
             if (owningPlayer.isMagnetingToWrench) {
-                if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) > 5.0f) {
-                    float rotationTowardsPlayer = GetLookAwayRotation2D(owningPlayer.transform.position).eulerAngles.z;
-                    float lerpedRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.z, rotationTowardsPlayer, 0.25f);
-                    Transform transformAroundPoint = GetTransformAroundPoint2D(attachedScrew.transform.position, lerpedRotation);
-                    rigidbody.position = transformAroundPoint.position;
-                    rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+                if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) > 15.0f) {
+                    if (gameObject.tag == "Screw") {
+                        float rotationTowardsPlayer = GetLookAwayRotation2D(owningPlayer.transform.position).eulerAngles.z;
+                        float lerpedRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.z, rotationTowardsPlayer, 0.25f);
+                        Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, lerpedRotation);
+                        rigidbody.position = transformAroundPoint.position;
+                        rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+                    }
                 }
                 else {
-                    wrenchState = WrenchState.ScrewPlayerRotation;
+                    wrenchState = WrenchState.GrabAttach;
                 }
             }
         }
 
-        if(wrenchState == WrenchState.ScrewPlayerRotation) {
-            float newRotation = transform.rotation.eulerAngles.z + screwSpinSpeed * owningPlayer.directionMultiplier;
-            Transform transformAroundPoint = GetTransformAroundPoint2D(attachedScrew.transform.position, newRotation);
-            rigidbody.position = transformAroundPoint.position;
-            rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+        if(wrenchState == WrenchState.GrabAttach) {
+            if (attachedObject.tag == "Screw") {
+                float newRotation = transform.rotation.eulerAngles.z + screwSpinSpeed * owningPlayer.directionMultiplier;
+                Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, newRotation);
+                rigidbody.position = transformAroundPoint.position;
+                rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+            }
         }
     }
 
@@ -126,16 +134,17 @@ public class WrenchController : MonoBehaviour
 
     public void ForceReturn() {
         EndThrow();
-        if (wrenchState == WrenchState.OnScrew) {
+        if (wrenchState == WrenchState.Attached) {
             StartReturn();
         }
     }
 
-    public void AttachToScrew(GameObject screw) {
-        attachedScrew = screw;
+    public void AttachTo(GameObject attachObject) {
+        attachedObject = attachObject;
         transform.parent = null;
-        transform.position = attachedScrew.transform.position - (screwOffset.x * transform.right) - (screwOffset.y * transform.up);
-        wrenchState = WrenchState.OnScrew;
+        transform.rotation = attachRotation;
+        transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
+        wrenchState = WrenchState.Attached;
     }
 
     public void ParentToPlayer() {
@@ -171,8 +180,8 @@ public class WrenchController : MonoBehaviour
     }
 
     void OnTriggerEnter2D(Collider2D otherCollider) {
-        if(otherCollider.gameObject.tag == "Screw" && wrenchState != WrenchState.WithPlayer) {
-            AttachToScrew(otherCollider.gameObject);
+        if(otherCollider.gameObject.tag == "Screw" || otherCollider.gameObject.tag == "Attachable" && wrenchState != WrenchState.WithPlayer) {
+            AttachTo(otherCollider.gameObject);
         }
     }
 }

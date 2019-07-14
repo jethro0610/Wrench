@@ -100,7 +100,7 @@ public class PlayerController : MonoBehaviour
         }
 
         if (wrenchTarget != null) {
-            if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.GrabAttach) {
                 wrenchTarget = null;
             }
             else if(Vector2.Distance(transform.position, wrenchTarget.transform.position) > maxTargetDistance) {
@@ -161,8 +161,10 @@ public class PlayerController : MonoBehaviour
         }
 
         if (Input.GetButtonUp("Fire1")) {
-            if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
-                rigidbody.velocity = (directionMultiplier * Vector2.up * transform.right.y * screwReleaseSpeedY) + (directionMultiplier * Vector2.right * transform.right.x * screwReleaseSpeedX);
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.GrabAttach) {
+                if(controlledWrench.attachedObject.tag == "Screw")
+                    rigidbody.velocity = (directionMultiplier * Vector2.up * transform.right.y * screwReleaseSpeedY) + (directionMultiplier * Vector2.right * transform.right.x * screwReleaseSpeedX);
+
                 controlledWrench.ParentToPlayer();
             }
         }
@@ -172,15 +174,15 @@ public class PlayerController : MonoBehaviour
         }
 
         if (Input.GetButton("Fire2")) {
-            if (controlledWrench.wrenchState == WrenchController.WrenchState.OnScrew)
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.Attached)
                 isMagnetingToWrench = true;
         }
         else {
-            if (controlledWrench.wrenchState == WrenchController.WrenchState.OnScrew)
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.Attached)
                 isMagnetingToWrench = false;
         }
 
-        if (controlledWrench.wrenchState != WrenchController.WrenchState.ScrewPlayerRotation) {
+        if (controlledWrench.wrenchState != WrenchController.WrenchState.GrabAttach) {
             if (Input.GetAxis("Horizontal") > 0.0f)
                 direction = Direction.Right;
 
@@ -197,7 +199,7 @@ public class PlayerController : MonoBehaviour
     }
 
     void FixedUpdate() {
-        if (!isMagnetingToWrench && controlledWrench.wrenchState != WrenchController.WrenchState.ScrewPlayerRotation) {
+        if (!isMagnetingToWrench && controlledWrench.wrenchState != WrenchController.WrenchState.GrabAttach) {
             rigidbody.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0.0f, 0.0f, 0.0f), 0.25f).eulerAngles.z;
 
             ContactPoint2D? groundContactPoint = GetGroundContactPoint();
@@ -224,12 +226,20 @@ public class PlayerController : MonoBehaviour
         }
 
         if(isMagnetingToWrench) {
-            if (controlledWrench.wrenchState != WrenchController.WrenchState.OnScrew)
+            if (controlledWrench.attachedObject.tag == "Screw") {
+                rigidbody.rotation = Quaternion.Lerp(transform.rotation, GetLookRotation2D(controlledWrench.transform.position) * Quaternion.Euler(0.0f, 0.0f, -90.0f), magnetToWrenchAcceleration).eulerAngles.z;
+            }
+            else {
+                rigidbody.rotation = Quaternion.Lerp(transform.rotation, controlledWrench.transform.rotation * Quaternion.Euler(0.0f, 0.0f, -90.0f), magnetToWrenchAcceleration).eulerAngles.z;
+            }
+
+            if (controlledWrench.wrenchState != WrenchController.WrenchState.Attached)
                 isMagnetingToWrench = false;
 
             Vector2 direction = GetDirectionTowardsLocation(controlledWrench.transform.position);
             rigidbody.velocity = Vector2.Lerp(rigidbody.velocity, direction * maxMagnetToWrenchSpeed, magnetToWrenchAcceleration);
-            if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
+
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.GrabAttach) {
                 rigidbody.velocity = Vector2.zero;
                 transform.rotation = controlledWrench.transform.rotation * Quaternion.Euler(Vector3.forward * -90.0f);
                 transform.parent = controlledWrench.transform;
@@ -279,6 +289,13 @@ public class PlayerController : MonoBehaviour
 
     public Vector3 GetDirectionTowardsLocation(Vector3 Location) {
         return (Location - transform.position).normalized;
+    }
+
+    public Quaternion GetLookRotation2D(Vector2 lookPosition) {
+        Vector2 direction = GetDirectionTowardsLocation(lookPosition);
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        Quaternion newRotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        return newRotation;
     }
 
     GameObject GetWrenchTargetMouse() {
