@@ -9,7 +9,7 @@ public class BackAndForth : MonoBehaviour
     moveSpeed;
 
     [SerializeField]
-    Vector2 endPosition;
+    Vector2 deltaPosition;
 
     Vector2 startPosition;
 
@@ -56,6 +56,6 @@ public class BackAndForth : MonoBehaviour
             }
         }
 
-        transform.position = Vector2.Lerp(startPosition, endPosition, travelTick);
+        transform.position = Vector2.Lerp(startPosition, startPosition + deltaPosition, travelTick);
     }
 }

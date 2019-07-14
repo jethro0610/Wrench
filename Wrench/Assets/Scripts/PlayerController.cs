@@ -77,6 +77,7 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        camera.transform.parent = null;
         controlledWrench = GetComponentInChildren<WrenchController>();
         collider = GetComponent<BoxCollider2D>();
         rigidbody = GetComponent<Rigidbody2D>();
@@ -86,8 +87,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //GetComponentInChildren<Camera>().transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
-
+        transform.position = (Vector2)transform.position;
         if(direction == Direction.Right) {
             playerModel.transform.localRotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
         }
@@ -179,9 +179,10 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButtonUp("Fire1")) {
             if (controlledWrench.wrenchState == WrenchController.WrenchState.GrabAttach) {
-                if(controlledWrench.attachedObject.tag == "Screw")
+                if (controlledWrench.attachedObject.tag == "Screw") {
                     rigidbody.velocity = (directionMultiplier * Vector2.up * transform.right.y * screwReleaseSpeedY) + (directionMultiplier * Vector2.right * transform.right.x * screwReleaseSpeedX);
-
+                    controlledWrench.attachedObject.GetComponent<ScrewDetector>().isGrabbed = false;
+                }
                 controlledWrench.ParentToPlayer();
             }
         }

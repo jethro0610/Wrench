@@ -64,6 +64,7 @@ public class WrenchController : MonoBehaviour
                 rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
 
                 attachedObject.GetComponent<Rigidbody2D>().rotation += screwSpinSpeed * owningPlayer.directionMultiplier * Time.deltaTime;
+                attachedObject.GetComponent<ScrewDetector>().isGrabbed = true;
             }
         }
 
