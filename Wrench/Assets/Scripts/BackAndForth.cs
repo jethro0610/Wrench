@@ -11,6 +11,7 @@ public class BackAndForth : MonoBehaviour
     [SerializeField]
     Vector2 deltaPosition;
 
+    float startZ;
     Vector2 startPosition;
 
     float travelTick;
@@ -21,6 +22,7 @@ public class BackAndForth : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        startZ = transform.position.z;
         startPosition = transform.position;
     }
 
@@ -56,6 +58,6 @@ public class BackAndForth : MonoBehaviour
             }
         }
 
-        transform.position = Vector2.Lerp(startPosition, startPosition + deltaPosition, travelTick);
+        transform.position = Vector3.Lerp(startPosition, startPosition + deltaPosition, travelTick) + (Vector3.forward * startZ);
     }
 }
