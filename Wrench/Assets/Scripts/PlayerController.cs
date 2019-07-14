@@ -72,8 +72,6 @@ public class PlayerController : MonoBehaviour
 
     public WrenchController controlledWrench { get; private set; }
     public bool isMagnetingToWrench { get; private set; }
-
-    bool toggleJumpAnim;
     bool toggleThrowAnim;
 
     // Start is called before the first frame update
@@ -124,22 +122,15 @@ public class PlayerController : MonoBehaviour
         HandleInput();
 
         animator.SetFloat("Move Speed", Mathf.Abs(Input.GetAxis("Horizontal")));
-        animator.SetBool("On Ground", GetGroundContactPoint().HasValue);
+        animator.SetBool("On Ground", GetGroundContactPoint().HasValue && rigidbody.rotation == 0.0f);
         animator.SetBool("Grab", isMagnetingToWrench || controlledWrench.wrenchState == WrenchController.WrenchState.GrabAttach);
         animator.SetFloat("Gravity", rigidbody.velocity.y);
         animator.SetBool("Jump", isJumping);
-        if (toggleJumpAnim == true) {
-            //animator.SetBool("Jump", false);
-            toggleJumpAnim = false;
-        }
 
         if (toggleThrowAnim == true) {
             animator.SetBool("Throw", false);
             toggleThrowAnim = false;
         }
-
-        //if (animator.GetBool("Jump") == true)
-            //toggleJumpAnim = true;
 
         if (animator.GetBool("Throw") == true)
             toggleThrowAnim = true;
@@ -228,8 +219,10 @@ public class PlayerController : MonoBehaviour
         if (!isMagnetingToWrench && controlledWrench.wrenchState != WrenchController.WrenchState.GrabAttach) {
             rigidbody.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0.0f, 0.0f, 0.0f), 0.25f).eulerAngles.z;
 
+
             ContactPoint2D? groundContactPoint = GetGroundContactPoint();
             if (groundContactPoint != null && groundContactPoint.Value.collider != collider) {
+                rigidbody.rotation = 0.0f;
                 //Set gravity to zero if falling
                 if (rigidbody.velocity.y < 0.0f)
                     rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0.0f);

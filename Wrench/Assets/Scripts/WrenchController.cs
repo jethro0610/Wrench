@@ -50,14 +50,25 @@ public class WrenchController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-    }
-
-    void FixedUpdate() {
         if (wrenchState == WrenchState.WithPlayer) {
             transform.localPosition = localPosition;
             transform.localRotation = localRotation;
         }
+
+        if (wrenchState == WrenchState.GrabAttach) {
+            if (attachedObject.tag == "Screw") {
+                transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
+                float newRotation = transform.rotation.eulerAngles.z + screwSpinSpeed * owningPlayer.directionMultiplier * Time.deltaTime;
+                Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, newRotation);
+                rigidbody.position = transformAroundPoint.position;
+                rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+
+                attachedObject.GetComponent<Rigidbody2D>().rotation += screwSpinSpeed * owningPlayer.directionMultiplier * Time.deltaTime;
+            }
+        }
+    }
+
+    void FixedUpdate() {
         if (wrenchState == WrenchState.Throw) {
             rigidbody.rotation -= -100.0f;
 
@@ -111,18 +122,6 @@ public class WrenchController : MonoBehaviour
                 else {
                     wrenchState = WrenchState.GrabAttach;
                 }
-            }
-        }
-
-        if(wrenchState == WrenchState.GrabAttach) {
-            if (attachedObject.tag == "Screw") {
-                transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
-                float newRotation = transform.rotation.eulerAngles.z + screwSpinSpeed * owningPlayer.directionMultiplier;
-                Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, newRotation);
-                rigidbody.position = transformAroundPoint.position;
-                rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
-
-                attachedObject.GetComponent<Rigidbody2D>().rotation += screwSpinSpeed * owningPlayer.directionMultiplier;
             }
         }
     }
