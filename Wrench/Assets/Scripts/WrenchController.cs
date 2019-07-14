@@ -104,6 +104,11 @@ public class WrenchController : MonoBehaviour
         }
 
         if (wrenchState == WrenchState.Attached) {
+            transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
+            Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, transform.rotation.eulerAngles.z);
+            rigidbody.position = transformAroundPoint.position;
+            rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+
             if (owningPlayer.isMagnetingToWrench) {
                 if (Vector2.Distance(rigidbody.position + (transform.right * holdOffset), owningPlayer.transform.position) > 15.0f) {
                     if (attachedObject.tag == "Screw") {
@@ -111,7 +116,7 @@ public class WrenchController : MonoBehaviour
                         float originalRotation = rigidbody.rotation;
                         float rotationTowardsPlayer = GetLookAwayRotation2D(owningPlayer.transform.position).eulerAngles.z;
                         float lerpedRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.z, rotationTowardsPlayer, 0.25f);
-                        Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, lerpedRotation);
+                        transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, lerpedRotation);
                         rigidbody.position = transformAroundPoint.position;
                         rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
 
