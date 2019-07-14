@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     new BoxCollider2D collider;
     new Rigidbody2D rigidbody;
+    public Animator animator { get; private set; }
 
     public enum Direction { Right, Left };
     public Direction direction { get; private set; } = Direction.Right;
@@ -72,12 +73,16 @@ public class PlayerController : MonoBehaviour
     public WrenchController controlledWrench { get; private set; }
     public bool isMagnetingToWrench { get; private set; }
 
+    bool toggleJumpAnim;
+    bool toggleThrowAnim;
+
     // Start is called before the first frame update
     void Start()
     {
         controlledWrench = GetComponentInChildren<WrenchController>();
         collider = GetComponent<BoxCollider2D>();
         rigidbody = GetComponent<Rigidbody2D>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     // Update is called once per frame
@@ -86,10 +91,10 @@ public class PlayerController : MonoBehaviour
         //GetComponentInChildren<Camera>().transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
 
         if(direction == Direction.Right) {
-            playerModel.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+            playerModel.transform.localRotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
         }
         else {
-            playerModel.transform.localRotation = Quaternion.Euler(0.0f, 180.0f, 0.0f);
+            playerModel.transform.localRotation = Quaternion.Euler(0.0f, -90.0f, 0.0f);
         }
 
         if (useController) {
@@ -117,6 +122,27 @@ public class PlayerController : MonoBehaviour
         }
 
         HandleInput();
+
+        animator.SetFloat("Move Speed", Mathf.Abs(Input.GetAxis("Horizontal")));
+        animator.SetBool("On Ground", GetGroundContactPoint().HasValue);
+        animator.SetBool("Grab", isMagnetingToWrench || controlledWrench.wrenchState == WrenchController.WrenchState.GrabAttach);
+        animator.SetFloat("Gravity", rigidbody.velocity.y);
+        animator.SetBool("Jump", isJumping);
+        if (toggleJumpAnim == true) {
+            //animator.SetBool("Jump", false);
+            toggleJumpAnim = false;
+        }
+
+        if (toggleThrowAnim == true) {
+            animator.SetBool("Throw", false);
+            toggleThrowAnim = false;
+        }
+
+        //if (animator.GetBool("Jump") == true)
+            //toggleJumpAnim = true;
+
+        if (animator.GetBool("Throw") == true)
+            toggleThrowAnim = true;
     }
 
     void HandleInput() {
@@ -243,7 +269,7 @@ public class PlayerController : MonoBehaviour
                 rigidbody.velocity = Vector2.zero;
                 transform.rotation = controlledWrench.transform.rotation * Quaternion.Euler(Vector3.forward * -90.0f);
                 transform.parent = controlledWrench.transform;
-                transform.localPosition = new Vector2(-5.0f, 0.0f);
+                transform.localPosition = new Vector2(controlledWrench.holdOffset.x, 0.0f);
             }
         }
     }
@@ -282,6 +308,7 @@ public class PlayerController : MonoBehaviour
 
     public void Jump() {
         if (GetGroundContactPoint().HasValue) {
+            //animator.SetBool("Jump", true);
             isJumping = true;
             rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpStrength);
         }

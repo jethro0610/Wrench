@@ -11,7 +11,7 @@ public class WrenchController : MonoBehaviour
     public WrenchState wrenchState { get; private set; } = WrenchState.WithPlayer;
 
     [SerializeField]
-    Vector2 holdOffset,
+    public Vector2 holdOffset,
     attachOffset;
 
     [SerializeField]
@@ -32,11 +32,19 @@ public class WrenchController : MonoBehaviour
 
     Quaternion attachRotation;
 
+    Transform parentSocket;
+    Vector3 localPosition;
+    Quaternion localRotation;
+
     // Start is called before the first frame update
     void Start()
     {
         rigidbody = GetComponent<Rigidbody2D>();
-        owningPlayer = GetComponentInParent<PlayerController>();   
+        owningPlayer = GetComponentInParent<PlayerController>();
+
+        parentSocket = transform.parent;
+        localPosition = transform.localPosition;
+        localRotation = transform.localRotation;
     }
 
     // Update is called once per frame
@@ -46,6 +54,10 @@ public class WrenchController : MonoBehaviour
     }
 
     void FixedUpdate() {
+        if (wrenchState == WrenchState.WithPlayer) {
+            transform.localPosition = localPosition;
+            transform.localRotation = localRotation;
+        }
         if (wrenchState == WrenchState.Throw) {
             rigidbody.rotation -= -100.0f;
 
@@ -82,7 +94,7 @@ public class WrenchController : MonoBehaviour
 
         if (wrenchState == WrenchState.Attached) {
             if (owningPlayer.isMagnetingToWrench) {
-                if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) > 15.0f) {
+                if (Vector2.Distance(rigidbody.position + (transform.right * holdOffset), owningPlayer.transform.position) > 15.0f) {
                     if (attachedObject.tag == "Screw") {
                         transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
                         float originalRotation = rigidbody.rotation;
@@ -121,9 +133,11 @@ public class WrenchController : MonoBehaviour
 
     public void Throw(Vector2 newThrowPosition) {
         if (wrenchState == WrenchState.WithPlayer) {
+            transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
             throwPosition = newThrowPosition;
             transform.parent = null;
             wrenchState = WrenchState.Throw;
+            owningPlayer.animator.SetBool("Throw", true);
         }
     }
 
@@ -158,9 +172,9 @@ public class WrenchController : MonoBehaviour
     public void ParentToPlayer() {
         owningPlayer.transform.parent = null;
         wrenchState = WrenchState.WithPlayer;
-        transform.parent = owningPlayer.transform;
-        transform.localPosition = Vector2.zero;
-        transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        transform.parent = parentSocket;
+        transform.localPosition = localPosition;
+        transform.localRotation = localRotation;
     }
 
     public Transform GetTransformAroundPoint2D(Vector2 point, float rotation) {
@@ -188,8 +202,9 @@ public class WrenchController : MonoBehaviour
     }
 
     void OnTriggerEnter2D(Collider2D otherCollider) {
-        if(otherCollider.gameObject.tag == "Screw" || otherCollider.gameObject.tag == "Attachable" && wrenchState != WrenchState.WithPlayer) {
-            AttachTo(otherCollider.gameObject);
+        if(wrenchState != WrenchState.WithPlayer) {
+            if(otherCollider.gameObject.tag == "Screw" || otherCollider.gameObject.tag == "Attachable")
+                AttachTo(otherCollider.gameObject);
         }
     }
 }
