@@ -14,16 +14,14 @@ public class PlayerController : MonoBehaviour
     GameObject playerModel;
 
     [SerializeField]
-    Transform visual;
-
-    [SerializeField]
     float maxMoveSpeed = 150.0f,
     groundFriction = 0.3f,
     airFriction = 0.05f,
     gravitySpeed = 10,
     jumpStrength = 250.0f,
     jumpStopSpeed = 0.8f,
-    maxTargetWidth = 50.0f,
+    targetWidthMouse = 10.0f,
+    targetWidthController = 50.0f,
     maxTargetDistance = 100.0f,
     throwDistance = 150.0f,
     maxMagnetToWrenchSpeed = 10.0f,
@@ -65,6 +63,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    [SerializeField]
+    Camera camera;
+
+    bool useController;
+    Vector2 aimVector;
+
     public WrenchController controlledWrench { get; private set; }
     public bool isMagnetingToWrench { get; private set; }
 
@@ -88,37 +92,27 @@ public class PlayerController : MonoBehaviour
             playerModel.transform.localRotation = Quaternion.Euler(0.0f, 180.0f, 0.0f);
         }
 
-        Vector2 stickPos = new Vector2(-Input.GetAxis("Horizontal"), -Input.GetAxis("Vertical"));
-        print(stickPos);
-        if (stickPos.magnitude < 0.1f) {
-            stickPos = new Vector2(-directionMultiplier, 0.0f);
+        if (useController) {
+            wrenchTarget = GetWrenchTargetController();
         }
-        float angle = Mathf.Atan2(stickPos.y, stickPos.x) * Mathf.Rad2Deg;
-        Vector2 capsuleBottomOrigin = stickPos.normalized * (maxTargetDistance / 2.0f);
-        List<Collider2D> targetColliders = new List<Collider2D>(Physics2D.OverlapBoxAll((Vector2)transform.position - capsuleBottomOrigin, new Vector2(maxTargetDistance, maxTargetWidth), angle));
-        visual.position = (Vector2)transform.position - capsuleBottomOrigin;
-        visual.localScale = new Vector2(maxTargetDistance, maxTargetWidth);
-        visual.rotation = Quaternion.Euler(0.0f, 0.0f, angle);
-        float targetDistance = Mathf.Infinity;
-
-        foreach(Collider2D collider in targetColliders) {
-            if (collider.tag == "Screw" || collider.tag == "Attachable") {
-                if (Vector2.Distance(transform.position, collider.transform.position) < targetDistance) {
-                    targetDistance = Vector2.Distance(transform.position, collider.transform.position);
-                    wrenchTarget = collider.gameObject;
-                }
-            }
+        else {
+            wrenchTarget = GetWrenchTargetMouse();
         }
 
         if (wrenchTarget != null) {
             if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
                 wrenchTarget = null;
             }
-            if (wrenchTarget.transform.position.x > transform.position.x && direction == Direction.Left) {
+            else if(Vector2.Distance(transform.position, wrenchTarget.transform.position) > maxTargetDistance) {
                 wrenchTarget = null;
             }
-            if (wrenchTarget.transform.position.x < transform.position.x && direction == Direction.Right) {
-                wrenchTarget = null;
+            else if (useController) {
+                if(transform.position.x > wrenchTarget.transform.position.x && direction == Direction.Right) {
+                    wrenchTarget = null;
+                }
+                else if (transform.position.x < wrenchTarget.transform.position.x && direction == Direction.Left) {
+                    wrenchTarget = null;
+                }
             }
         }
 
@@ -126,6 +120,25 @@ public class PlayerController : MonoBehaviour
     }
 
     void HandleInput() {
+        if(Mathf.Abs(Input.GetAxis("Mouse X")) > 0.1f) {
+            useController = false;
+        }
+
+        if(Mathf.Abs(Input.GetAxis("Aim X")) > 0.1f) {
+            useController = true;
+        }
+
+        if (useController) {
+            aimVector = new Vector2(Input.GetAxis("Aim X"), -Input.GetAxis("Aim Y"));
+            if(Mathf.Abs(aimVector.x) < 0.1f && Mathf.Abs(aimVector.y) < 0.1f) {
+                aimVector.x = directionMultiplier;
+            }
+        }
+        else {
+            Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
+            aimVector = (mousePosition - (Vector2)transform.position).normalized;
+        }
+
         if (Input.GetButtonDown("Jump")) {
             Jump();
         }
@@ -139,10 +152,9 @@ public class PlayerController : MonoBehaviour
             Vector2 throwPosition;
             if(wrenchTarget != null) {
                 throwPosition = wrenchTarget.transform.position;
-                //throwPosition = (Vector2)transform.position + (Vector2.right * throwDistance * directionMultiplier) + (Vector2.up * throwDistance * (Input.GetAxis("Vertical") / 2.0f));
             }
             else {
-                throwPosition = (Vector2)transform.position + (Vector2.right* throwDistance * directionMultiplier) + (Vector2.up * throwDistance * (Input.GetAxis("Vertical") / 2.0f));
+                throwPosition = (Vector2)transform.position + (aimVector * throwDistance);
             }
             
             controlledWrench.Throw(throwPosition);
@@ -258,5 +270,42 @@ public class PlayerController : MonoBehaviour
 
     public Vector3 GetDirectionTowardsLocation(Vector3 Location) {
         return (Location - transform.position).normalized;
+    }
+
+    GameObject GetWrenchTargetMouse() {
+        GameObject returnTarget = null;
+        Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
+        float angle = Mathf.Atan2(-aimVector.y, -aimVector.x) * Mathf.Rad2Deg;
+        Vector2 capsuleBottomOrigin = -aimVector.normalized * (maxTargetDistance / 2.0f);
+        List<Collider2D> targetColliders = new List<Collider2D>(Physics2D.OverlapBoxAll((Vector2)transform.position - capsuleBottomOrigin, new Vector2(maxTargetDistance, targetWidthMouse), angle));
+        float targetDistance = Mathf.Infinity;
+
+        foreach (Collider2D collider in targetColliders) {
+            if (collider.tag == "Screw" || collider.tag == "Attachable") {
+                if (Vector2.Distance(mousePosition, collider.transform.position) < targetDistance) {
+                    targetDistance = Vector2.Distance(transform.position, collider.transform.position);
+                    returnTarget = collider.gameObject;
+                }
+            }
+        }
+        return returnTarget;
+    }
+
+    GameObject GetWrenchTargetController() {
+        GameObject returnTarget = wrenchTarget;
+        float angle = Mathf.Atan2(-aimVector.normalized.y, -aimVector.normalized.x) * Mathf.Rad2Deg;
+        Vector2 capsuleBottomOrigin = -aimVector.normalized * (maxTargetDistance / 2.0f);
+        List<Collider2D> targetColliders = new List<Collider2D>(Physics2D.OverlapBoxAll((Vector2)transform.position - capsuleBottomOrigin, new Vector2(maxTargetDistance, targetWidthController), angle));
+        float targetDistance = Mathf.Infinity;
+
+        foreach (Collider2D collider in targetColliders) {
+            if (collider.tag == "Screw" || collider.tag == "Attachable") {
+                if (Vector2.Distance(transform.position, collider.transform.position) < targetDistance) {
+                    targetDistance = Vector2.Distance(transform.position, collider.transform.position);
+                    returnTarget = collider.gameObject;
+                }
+            }
+        }
+        return returnTarget;
     }
 }
