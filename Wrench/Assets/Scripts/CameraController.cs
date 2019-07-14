@@ -7,17 +7,23 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     float lerpSpeed,
     maxWrenchDistance,
-    zoomOutMultiplier;
+    zoomOutMultiplier,
+    parallaxScale = 1.0f;
 
     [SerializeField]
     Rigidbody2D player,
     wrench;
 
+    [SerializeField]
+    Transform background;
+
     float startSize;
+    float cameraStartX;
     // Start is called before the first frame update
     void Start()
     {
         startSize = GetComponent<Camera>().orthographicSize;
+        cameraStartX = transform.position.x;
     }
 
     void LateUpdate()
@@ -34,5 +40,8 @@ public class CameraController : MonoBehaviour
 
         transform.position = Vector2.Lerp(transform.position, point, lerpSpeed * Time.deltaTime);
         transform.position += Vector3.forward * -10.0f;
+
+        float xDif = cameraStartX - transform.position.x;
+        background.transform.localPosition = new Vector3(xDif * parallaxScale, 10.0f, 200.0f);
     }
 }
