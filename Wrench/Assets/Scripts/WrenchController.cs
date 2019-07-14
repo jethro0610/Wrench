@@ -56,16 +56,18 @@ public class WrenchController : MonoBehaviour
         }
 
         if (wrenchState == WrenchState.GrabAttach) {
-            if (attachedObject.tag == "Screw") {
-                transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
-                float newRotation = transform.rotation.eulerAngles.z + screwSpinSpeed * owningPlayer.directionMultiplier * Time.deltaTime;
-                Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, newRotation);
-                rigidbody.position = transformAroundPoint.position;
-                rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+            transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
+            float newRotation = transform.rotation.eulerAngles.z;
 
+            if (attachedObject.tag == "Screw") {
+                newRotation += screwSpinSpeed * owningPlayer.directionMultiplier * Time.deltaTime;
                 attachedObject.GetComponent<Rigidbody2D>().rotation += screwSpinSpeed * owningPlayer.directionMultiplier * Time.deltaTime;
                 attachedObject.GetComponent<ScrewDetector>().isGrabbed = true;
             }
+
+            Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, newRotation);
+            rigidbody.position = transformAroundPoint.position;
+            rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
         }
 
         if (wrenchState == WrenchState.Attached) {
