@@ -101,7 +101,7 @@ MonoBehaviour:
   gravitySpeed: 10
   jumpStrength: 250
   jumpStopSpeed: 0.8
-  targetWidthMouse: 10
+  targetWidthMouse: 50
   targetWidthController: 50
   maxTargetDistance: 150
   throwDistance: 150
