@@ -15,13 +15,12 @@ public class WrenchController : MonoBehaviour
     screwOffset;
 
     [SerializeField]
-    float throwDistance = 150.0f,
-    maxThrowSpeed = 10.0f,
+    float maxThrowSpeed = 10.0f,
     maxReturnSpeed = 50.0f,
     returnAcceleration = 0.1f,
     throwEndWait = 0.1f,
     screwSpinSpeed = 10.0f;
-    
+
     Vector2 throwEndDirection;
     float throwEndSpeed;
 
@@ -104,9 +103,9 @@ public class WrenchController : MonoBehaviour
         return (Location - (Vector2)transform.position).normalized;
     }
 
-    public void Throw() {
+    public void Throw(Vector2 newThrowPosition) {
         if (wrenchState == WrenchState.WithPlayer) {
-            throwPosition = new Vector2(owningPlayer.transform.position.x + throwDistance, owningPlayer.transform.position.y);
+            throwPosition = newThrowPosition;
             transform.parent = null;
             wrenchState = WrenchState.Throw;
         }

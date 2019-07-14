@@ -14,18 +14,25 @@ public class PlayerController : MonoBehaviour
     GameObject playerModel;
 
     [SerializeField]
+    Transform visual;
+
+    [SerializeField]
     float maxMoveSpeed = 150.0f,
     groundFriction = 0.3f,
     airFriction = 0.05f,
     gravitySpeed = 10,
     jumpStrength = 250.0f,
     jumpStopSpeed = 0.8f,
+    maxTargetWidth = 50.0f,
+    maxTargetDistance = 100.0f,
+    throwDistance = 150.0f,
     maxMagnetToWrenchSpeed = 10.0f,
     magnetToWrenchAcceleration = 0.8f,
     screwReleaseSpeedX = 500.0f,
     screwReleaseSpeedY = 300.0f;
 
     bool isJumping;
+    public GameObject wrenchTarget { get; private set; }
 
     float groundAcceleration {
         get {
@@ -81,6 +88,40 @@ public class PlayerController : MonoBehaviour
             playerModel.transform.localRotation = Quaternion.Euler(0.0f, 180.0f, 0.0f);
         }
 
+        Vector2 stickPos = new Vector2(-Input.GetAxis("Horizontal"), -Input.GetAxis("Vertical"));
+        print(stickPos);
+        if (stickPos.magnitude < 0.1f) {
+            stickPos = new Vector2(-directionMultiplier, 0.0f);
+        }
+        float angle = Mathf.Atan2(stickPos.y, stickPos.x) * Mathf.Rad2Deg;
+        Vector2 capsuleBottomOrigin = stickPos.normalized * (maxTargetDistance / 2.0f);
+        List<Collider2D> targetColliders = new List<Collider2D>(Physics2D.OverlapBoxAll((Vector2)transform.position - capsuleBottomOrigin, new Vector2(maxTargetDistance, maxTargetWidth), angle));
+        visual.position = (Vector2)transform.position - capsuleBottomOrigin;
+        visual.localScale = new Vector2(maxTargetDistance, maxTargetWidth);
+        visual.rotation = Quaternion.Euler(0.0f, 0.0f, angle);
+        float targetDistance = Mathf.Infinity;
+
+        foreach(Collider2D collider in targetColliders) {
+            if (collider.tag == "Screw" || collider.tag == "Attachable") {
+                if (Vector2.Distance(transform.position, collider.transform.position) < targetDistance) {
+                    targetDistance = Vector2.Distance(transform.position, collider.transform.position);
+                    wrenchTarget = collider.gameObject;
+                }
+            }
+        }
+
+        if (wrenchTarget != null) {
+            if (controlledWrench.wrenchState == WrenchController.WrenchState.ScrewPlayerRotation) {
+                wrenchTarget = null;
+            }
+            if (wrenchTarget.transform.position.x > transform.position.x && direction == Direction.Left) {
+                wrenchTarget = null;
+            }
+            if (wrenchTarget.transform.position.x < transform.position.x && direction == Direction.Right) {
+                wrenchTarget = null;
+            }
+        }
+
         HandleInput();
     }
 
@@ -95,7 +136,16 @@ public class PlayerController : MonoBehaviour
         }
 
         if (Input.GetButtonDown("Fire1")) {
-            controlledWrench.Throw();
+            Vector2 throwPosition;
+            if(wrenchTarget != null) {
+                throwPosition = wrenchTarget.transform.position;
+                //throwPosition = (Vector2)transform.position + (Vector2.right * throwDistance * directionMultiplier) + (Vector2.up * throwDistance * (Input.GetAxis("Vertical") / 2.0f));
+            }
+            else {
+                throwPosition = (Vector2)transform.position + (Vector2.right* throwDistance * directionMultiplier) + (Vector2.up * throwDistance * (Input.GetAxis("Vertical") / 2.0f));
+            }
+            
+            controlledWrench.Throw(throwPosition);
         }
 
         if (Input.GetButtonUp("Fire1")) {
