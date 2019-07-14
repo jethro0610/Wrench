@@ -66,6 +66,33 @@ public class WrenchController : MonoBehaviour
                 attachedObject.GetComponent<Rigidbody2D>().rotation += screwSpinSpeed * owningPlayer.directionMultiplier * Time.deltaTime;
             }
         }
+
+        if (wrenchState == WrenchState.Attached) {
+            transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
+            Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, transform.rotation.eulerAngles.z);
+            rigidbody.position = transformAroundPoint.position;
+            rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+
+            if (owningPlayer.isMagnetingToWrench) {
+                if (Vector2.Distance(rigidbody.position + (transform.right * holdOffset), owningPlayer.transform.position) > 15.0f) {
+                    if (attachedObject.tag == "Screw") {
+                        transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
+                        float originalRotation = rigidbody.rotation;
+                        float rotationTowardsPlayer = GetLookAwayRotation2D(owningPlayer.transform.position).eulerAngles.z;
+                        float lerpedRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.z, rotationTowardsPlayer, 4.0f * Time.deltaTime);
+                        transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, lerpedRotation);
+                        rigidbody.position = transformAroundPoint.position;
+                        rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
+
+                        float rotationDifference = lerpedRotation - originalRotation;
+                        attachedObject.GetComponent<Rigidbody2D>().rotation += rotationDifference;
+                    }
+                }
+                else {
+                    wrenchState = WrenchState.GrabAttach;
+                }
+            }
+        }
     }
 
     void FixedUpdate() {
@@ -100,33 +127,6 @@ public class WrenchController : MonoBehaviour
             attachRotation = GetLookAwayRotation2D(throwPosition);
             if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) < returnSpeed/2.0f) {
                 ParentToPlayer();
-            }
-        }
-
-        if (wrenchState == WrenchState.Attached) {
-            transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
-            Transform transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, transform.rotation.eulerAngles.z);
-            rigidbody.position = transformAroundPoint.position;
-            rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
-
-            if (owningPlayer.isMagnetingToWrench) {
-                if (Vector2.Distance(rigidbody.position + (transform.right * holdOffset), owningPlayer.transform.position) > 15.0f) {
-                    if (attachedObject.tag == "Screw") {
-                        transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
-                        float originalRotation = rigidbody.rotation;
-                        float rotationTowardsPlayer = GetLookAwayRotation2D(owningPlayer.transform.position).eulerAngles.z;
-                        float lerpedRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.z, rotationTowardsPlayer, 0.25f);
-                        transformAroundPoint = GetTransformAroundPoint2D(attachedObject.transform.position, lerpedRotation);
-                        rigidbody.position = transformAroundPoint.position;
-                        rigidbody.rotation = transformAroundPoint.rotation.eulerAngles.z;
-
-                        float rotationDifference = lerpedRotation - originalRotation;
-                        attachedObject.GetComponent<Rigidbody2D>().rotation += rotationDifference;
-                    }
-                }
-                else {
-                    wrenchState = WrenchState.GrabAttach;
-                }
             }
         }
     }

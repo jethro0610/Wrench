@@ -29,7 +29,8 @@ public class CameraController : MonoBehaviour
         if(distance > 50.0f) {
             point = (player.position + wrench.position) / 2.0f;
         }
-        GetComponent<Camera>().orthographicSize = startSize + (Mathf.Max(0.0f, distance - 50.0f) * zoomOutMultiplier);
+        float newSize = startSize + (Mathf.Max(0.0f, distance - 50.0f) * zoomOutMultiplier);
+        GetComponent<Camera>().orthographicSize = Mathf.Lerp(GetComponent<Camera>().orthographicSize, newSize, lerpSpeed * Time.deltaTime);
 
         transform.position = Vector2.Lerp(transform.position, point, lerpSpeed * Time.deltaTime);
         transform.position += Vector3.forward * -10.0f;

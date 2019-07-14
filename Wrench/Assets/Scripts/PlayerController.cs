@@ -219,9 +219,8 @@ public class PlayerController : MonoBehaviour
         if (!isMagnetingToWrench && controlledWrench.wrenchState != WrenchController.WrenchState.GrabAttach) {
             rigidbody.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0.0f, 0.0f, 0.0f), 0.25f).eulerAngles.z;
 
-
-            ContactPoint2D? groundContactPoint = GetGroundContactPoint();
-            if (groundContactPoint != null && groundContactPoint.Value.collider != collider) {
+            RaycastHit2D? groundContactPoint = GetGroundContactPoint();
+            if (groundContactPoint.HasValue) {
                 rigidbody.rotation = 0.0f;
                 //Set gravity to zero if falling
                 if (rigidbody.velocity.y < 0.0f)
@@ -245,6 +244,7 @@ public class PlayerController : MonoBehaviour
         }
 
         if(isMagnetingToWrench) {
+            transform.parent = null;
             if (controlledWrench.attachedObject.tag == "Screw") {
                 rigidbody.rotation = Quaternion.Lerp(transform.rotation, GetLookRotation2D(controlledWrench.transform.position) * Quaternion.Euler(0.0f, 0.0f, -90.0f), magnetToWrenchAcceleration).eulerAngles.z;
             }
@@ -272,27 +272,19 @@ public class PlayerController : MonoBehaviour
     }
 
     public Vector2 GetBottomOrigin() {
-        return transform.position - new Vector3(0.0f, GetHalfHeight());
+        return rigidbody.position - new Vector2(0.0f, GetHalfHeight());
     }
 
-    public ContactPoint2D? GetGroundContactPoint() {
-        bool foundGroundPoint = false;
-        ContactPoint2D returnPoint = new ContactPoint2D();
-
-        //Get contact points on collider
-        List<ContactPoint2D> contacts  = new List<ContactPoint2D>();
-        collider.GetContacts(contacts);
-
-        foreach(ContactPoint2D contactPoint in contacts) {
-            //Check if contact point is on bottom
-            if (contactPoint.point.y < transform.position.y) {
-                returnPoint = contactPoint;
-                foundGroundPoint = true;
-            }
+    public RaycastHit2D? GetGroundContactPoint() {
+        List<RaycastHit2D> castHits = new List<RaycastHit2D>(Physics2D.RaycastAll(transform.position, Vector2.down, GetHalfHeight() + 0.1f));
+        RaycastHit2D returnHit = new RaycastHit2D();
+        foreach(RaycastHit2D castHit in castHits) {
+            if (castHit.collider != GetComponent<Collider2D>() && !castHit.collider.isTrigger)
+                returnHit = castHit;
         }
-
-        if (foundGroundPoint) {
-            return returnPoint;
+        //print(returnHit.collider.gameObject.name);
+        if (returnHit.collider != null) {
+            return Physics2D.Raycast(GetBottomOrigin(), Vector2.down, 1.0f);
         }
         else {
             return null;
