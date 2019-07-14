@@ -180,11 +180,20 @@ public class PlayerController : MonoBehaviour
                 isMagnetingToWrench = false;
         }
 
-        if (Input.GetAxis("Horizontal") > 0.0f)
-            direction = Direction.Right;
+        if (controlledWrench.wrenchState != WrenchController.WrenchState.ScrewPlayerRotation) {
+            if (Input.GetAxis("Horizontal") > 0.0f)
+                direction = Direction.Right;
 
-        if (Input.GetAxis("Horizontal") < 0.0f)
-            direction = Direction.Left;
+            if (Input.GetAxis("Horizontal") < 0.0f)
+                direction = Direction.Left;
+        }
+        else {
+            if (aimVector.x > 0.0f)
+                direction = Direction.Right;
+
+            if (aimVector.x < 0.0f)
+                direction = Direction.Left;
+        }
     }
 
     void FixedUpdate() {
