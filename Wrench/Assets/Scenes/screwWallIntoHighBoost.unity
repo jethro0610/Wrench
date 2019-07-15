@@ -660,11 +660,6 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 4444666816420803804, guid: be048d5565201f94cabc869e38be961a,
-        type: 3}
-      propertyPath: m_Radius
-      value: 10
-      objectReference: {fileID: 0}
     - target: {fileID: 4444666817026456331, guid: be048d5565201f94cabc869e38be961a,
         type: 3}
       propertyPath: m_LocalRotation.x
