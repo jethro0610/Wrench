@@ -10,6 +10,7 @@ public class TimeTracker : MonoBehaviour
     [SerializeField]
     GameObject menuText,
     quitText;
+    
     // Start is called before the first frame update
     void Start()
     {
