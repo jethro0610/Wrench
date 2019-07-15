@@ -29,7 +29,8 @@ public class PlayerController : MonoBehaviour
     magnetToWrenchAcceleration = 0.8f,
     screwReleaseSpeedX = 500.0f,
     screwReleaseSpeedY = 300.0f,
-    respawnHeight = -200.0f;
+    respawnHeight = -200.0f,
+    walkSoundPlayRate = 1.0f;
 
     [SerializeField]
     AudioSource wrenchContactSound,
@@ -37,6 +38,8 @@ public class PlayerController : MonoBehaviour
     jumpSound,
     throwSound,
     magnetSound;
+
+    float walkSoundTick = 0.0f;
 
     bool isJumping;
     public GameObject wrenchTarget { get; private set; }
@@ -151,8 +154,14 @@ public class PlayerController : MonoBehaviour
             toggleThrowAnim = true;
 
         if (GetGroundContactPoint().HasValue && Mathf.Abs(Input.GetAxis("Horizotal")) > 0.1f){
-            if (!walkSound.isPlaying)
+            walkSoundTick += Time.deltaTime * Mathf.Abs(Input.GetAxis("Horizotal"));
+            if (walkSoundTick >= walkSoundPlayRate) {
+                walkSoundTick = 0.0f;
                 walkSound.Play();
+            }
+        }
+        else {
+            walkSoundTick = 0.0f
         }
     }
 
