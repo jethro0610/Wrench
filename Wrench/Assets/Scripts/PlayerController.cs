@@ -34,7 +34,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     AudioSource wrenchContactSound,
     walkSound,
-    jumpSound;
+    jumpSound,
+    throwSound,
+    magnetSound;
 
     bool isJumping;
     public GameObject wrenchTarget { get; private set; }
@@ -72,8 +74,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    [SerializeField]
-    Camera camera;
+    public Camera camera;
 
     bool useController;
     Vector2 aimVector;
@@ -284,6 +285,10 @@ public class PlayerController : MonoBehaviour
                 transform.parent = controlledWrench.transform;
                 transform.localPosition = new Vector2(controlledWrench.holdOffset.x, 0.0f);
             }
+
+            if (!magnetSound.isPlaying) {
+                magnetSound.Play();
+            }
         }
     }
     
@@ -376,5 +381,17 @@ public class PlayerController : MonoBehaviour
 
     public void PlayWrenchSound() {
         wrenchContactSound.Play();
+    }
+
+    public void PlayThrowSound() {
+        throwSound.Play();
+    }
+
+    public void PlayMagnetSound() {
+        magnetSound.Play();
+    }
+
+    public void StopMagnetSound() {
+        magnetSound.Stop();
     }
 }

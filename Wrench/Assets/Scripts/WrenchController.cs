@@ -92,6 +92,8 @@ public class WrenchController : MonoBehaviour
                     }
                 }
                 else {
+                    owningPlayer.PlayWrenchSound();
+                    owningPlayer.StopMagnetSound();
                     wrenchState = WrenchState.GrabAttach;
                 }
             }
@@ -130,6 +132,8 @@ public class WrenchController : MonoBehaviour
             attachRotation = GetLookAwayRotation2D(throwPosition);
             if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) < returnSpeed/2.0f) {
                 ParentToPlayer();
+                owningPlayer.PlayWrenchSound();
+                owningPlayer.StopMagnetSound();
             }
         }
     }
@@ -144,6 +148,7 @@ public class WrenchController : MonoBehaviour
             throwPosition = newThrowPosition;
             transform.parent = null;
             wrenchState = WrenchState.Throw;
+            owningPlayer.PlayThrowSound();
             owningPlayer.animator.SetBool("Throw", true);
         }
     }
@@ -159,6 +164,7 @@ public class WrenchController : MonoBehaviour
     public void StartReturn() {
         returnSpeed = 0.0f;
         wrenchState = WrenchState.Return;
+        owningPlayer.PlayMagnetSound();
     }
 
     public void ForceReturn() {
@@ -174,6 +180,7 @@ public class WrenchController : MonoBehaviour
         transform.rotation = attachRotation;
         transform.position = attachedObject.transform.position - (attachOffset.x * transform.right) - (attachOffset.y * transform.up);
         wrenchState = WrenchState.Attached;
+        owningPlayer.PlayWrenchSound();
     }
 
     public void ParentToPlayer() {
