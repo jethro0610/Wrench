@@ -24,6 +24,7 @@ public class CameraController : MonoBehaviour
     {
         startSize = GetComponent<Camera>().orthographicSize;
         cameraStartX = transform.position.x;
+        background.gameObject.SetActive(true);
     }
 
     void LateUpdate()
