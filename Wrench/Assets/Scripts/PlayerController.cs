@@ -31,6 +31,11 @@ public class PlayerController : MonoBehaviour
     screwReleaseSpeedY = 300.0f,
     respawnHeight = -200.0f;
 
+    [SerializeField]
+    AudioSource wrenchContactSound,
+    walkSound,
+    jumpSound;
+
     bool isJumping;
     public GameObject wrenchTarget { get; private set; }
 
@@ -143,6 +148,11 @@ public class PlayerController : MonoBehaviour
 
         if (animator.GetBool("Throw") == true)
             toggleThrowAnim = true;
+
+        if (GetGroundContactPoint().HasValue && Mathf.Abs(Input.GetAxis("Horizotal")) > 0.1f){
+            if (!walkSound.isPlaying)
+                walkSound.Play();
+        }
     }
 
     void HandleInput() {
@@ -303,7 +313,7 @@ public class PlayerController : MonoBehaviour
 
     public void Jump() {
         if (GetGroundContactPoint().HasValue) {
-            //animator.SetBool("Jump", true);
+            jumpSound.Play();
             isJumping = true;
             rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpStrength);
         }
@@ -362,5 +372,9 @@ public class PlayerController : MonoBehaviour
         rigidbody.rotation = 0.0f;
         transform.position = spawnPos;
         controlledWrench.ParentToPlayer();
+    }
+
+    public void PlayWrenchSound() {
+        wrenchContactSound.Play();
     }
 }
