@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Screw
   - Attachable
+  - Time Tracker
   layers:
   - Default
   - TransparentFX

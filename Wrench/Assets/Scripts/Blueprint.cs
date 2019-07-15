@@ -25,7 +25,6 @@ public class Blueprint : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision) {
         if (collision.tag == "Player") {
-            print("Blueprint Get");
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
     }

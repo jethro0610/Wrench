@@ -35,4 +35,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/screwWallIntoHighBoost.unity
     guid: 484ca01fca788954085fd9bbe152f6a3
+  - enabled: 1
+    path: Assets/Scenes/endMenu.unity
+    guid: b2a6b371e2a10f140ba1c59badc6ba27
   m_configObjects: {}
