@@ -253,9 +253,8 @@ public class PlayerController : MonoBehaviour
             RaycastHit2D? groundContactPoint = GetGroundContactPoint();
             if (groundContactPoint.HasValue) {
                 rigidbody.rotation = 0.0f;
-                //Set gravity to zero if falling
-                if (rigidbody.velocity.y < 0.0f)
-                    rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0.0f);
+                rigidbody.velocity += new Vector2(0.0f, -gravitySpeed);
+
                 //Move based on input
                 rigidbody.velocity += new Vector2(groundAcceleration * Input.GetAxis("Horizontal"), 0.0f);
                 //Apply friction
