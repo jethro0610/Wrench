@@ -6,6 +6,33 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 2cda990e2423bbf4892e6590ba056729
+    path: Assets/Scenes/startMenu.unity
+    guid: c686034ba58be9a49abbf67940d7777e
+  - enabled: 1
+    path: Assets/Scenes/tutorialLevel.unity
+    guid: 6dcb806267d407f4a9c91d30f9fd57a9
+  - enabled: 1
+    path: Assets/Scenes/firstGap.unity
+    guid: e414c30f2ae695c4c9c065666e13389c
+  - enabled: 1
+    path: Assets/Scenes/firstMovingPole.unity
+    guid: dfa7a6cbfb1389c43bb0dbadf7d2dccb
+  - enabled: 1
+    path: Assets/Scenes/firstScrew.unity
+    guid: 87d48da1095617f4f99b744a0eb23ac1
+  - enabled: 1
+    path: Assets/Scenes/stairway.unity
+    guid: 90ee09452f5f6144682b08c7d50551cd
+  - enabled: 1
+    path: Assets/Scenes/poleIntoScrew.unity
+    guid: 92f354685fa5f1b4bb58a1fec4c424ba
+  - enabled: 1
+    path: Assets/Scenes/movingGate.unity
+    guid: c28a77d7aea54cf4286bb958454373c3
+  - enabled: 1
+    path: Assets/Scenes/dipBelowIntoHighBoost.unity
+    guid: faa66b96944d4b74b95ef6a4d88a2f71
+  - enabled: 1
+    path: Assets/Scenes/screwWallIntoHighBoost.unity
+    guid: 484ca01fca788954085fd9bbe152f6a3
   m_configObjects: {}

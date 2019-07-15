@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Blueprint : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class Blueprint : MonoBehaviour
     float rotationSpeed;
 
     [SerializeField]
-    string levelName;
+    int nextLevel;
 
     // Start is called before the first frame update
     void Start()
@@ -25,6 +26,7 @@ public class Blueprint : MonoBehaviour
     void OnTriggerEnter2D(Collider2D collision) {
         if (collision.tag == "Player") {
             print("Blueprint Get");
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
     }
 }
