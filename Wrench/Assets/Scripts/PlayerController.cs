@@ -89,7 +89,7 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        camera.transform.parent = null;
+        camera.transform.parent.transform.parent = null;
         controlledWrench = GetComponentInChildren<WrenchController>();
         collider = GetComponent<BoxCollider2D>();
         rigidbody = GetComponent<Rigidbody2D>();
@@ -153,15 +153,15 @@ public class PlayerController : MonoBehaviour
         if (animator.GetBool("Throw") == true)
             toggleThrowAnim = true;
 
-        if (GetGroundContactPoint().HasValue && Mathf.Abs(Input.GetAxis("Horizotal")) > 0.1f){
-            walkSoundTick += Time.deltaTime * Mathf.Abs(Input.GetAxis("Horizotal"));
+        if (GetGroundContactPoint().HasValue && Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f){
+            walkSoundTick += Time.deltaTime * Mathf.Abs(Input.GetAxis("Horizontal"));
             if (walkSoundTick >= walkSoundPlayRate) {
                 walkSoundTick = 0.0f;
                 walkSound.Play();
             }
         }
         else {
-            walkSoundTick = 0.0f;
+            walkSoundTick = walkSoundPlayRate;
         }
     }
 
@@ -211,6 +211,7 @@ public class PlayerController : MonoBehaviour
                 if (controlledWrench.attachedObject.tag == "Screw") {
                     rigidbody.velocity = (directionMultiplier * Vector2.up * transform.right.y * screwReleaseSpeedY) + (directionMultiplier * Vector2.right * transform.right.x * screwReleaseSpeedX);
                     controlledWrench.attachedObject.GetComponent<ScrewDetector>().isGrabbed = false;
+                    jumpSound.Play();
                 }
                 controlledWrench.ParentToPlayer();
             }
@@ -248,7 +249,7 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate() {
         if (!isMagnetingToWrench && controlledWrench.wrenchState != WrenchController.WrenchState.GrabAttach) {
             rigidbody.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0.0f, 0.0f, 0.0f), 0.25f).eulerAngles.z;
-
+            StopMagnetSound();
             RaycastHit2D? groundContactPoint = GetGroundContactPoint();
             if (groundContactPoint.HasValue) {
                 rigidbody.rotation = 0.0f;
@@ -295,7 +296,7 @@ public class PlayerController : MonoBehaviour
                 transform.localPosition = new Vector2(controlledWrench.holdOffset.x, 0.0f);
             }
 
-            if (!magnetSound.isPlaying) {
+            if (!magnetSound.isPlaying && controlledWrench.wrenchState != WrenchController.WrenchState.GrabAttach) {
                 magnetSound.Play();
             }
         }
@@ -390,6 +391,7 @@ public class PlayerController : MonoBehaviour
 
     public void PlayWrenchSound() {
         wrenchContactSound.Play();
+        StopMagnetSound();
     }
 
     public void PlayThrowSound() {
