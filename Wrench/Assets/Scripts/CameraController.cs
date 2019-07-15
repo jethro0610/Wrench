@@ -19,6 +19,11 @@ public class CameraController : MonoBehaviour
 
     float startSize;
     float cameraStartX;
+
+    float shakeTime;
+    float shakeStrength;
+
+    Vector3 shakeOffset;
     // Start is called before the first frame update
     void Start()
     {
@@ -39,10 +44,25 @@ public class CameraController : MonoBehaviour
         float newSize = startSize + (Mathf.Max(0.0f, distance - 50.0f) * zoomOutMultiplier);
         GetComponent<Camera>().orthographicSize = Mathf.Lerp(GetComponent<Camera>().orthographicSize, newSize, lerpSpeed * Time.deltaTime);
 
-        transform.position = Vector2.Lerp(transform.position, point, lerpSpeed * Time.deltaTime);
+        transform.position = Vector2.Lerp(transform.position - shakeOffset, point, lerpSpeed * Time.deltaTime);
         transform.position += Vector3.forward * -30.0f;
 
         float xDif = cameraStartX - transform.position.x;
         background.transform.localPosition = new Vector3(xDif * parallaxScale, 10.0f, 200.0f);
+
+        if(shakeTime >= 0.0f) {
+            shakeTime -= Time.deltaTime;
+            shakeOffset.x = Mathf.Sin(Time.time) * shakeStrength;
+            shakeOffset.y = Mathf.Sin(Time.time - 0.5f) * shakeStrength;
+        }
+        else {
+            shakeOffset = Vector3.zero;
+        }
+        transform.position += shakeOffset;
+    }
+
+    public void ShakeForSeconds(float time, float strength) {
+        shakeTime = time;
+        shakeStrength = strength;
     }
 }
