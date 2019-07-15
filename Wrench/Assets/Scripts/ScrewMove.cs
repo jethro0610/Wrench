@@ -13,11 +13,13 @@ public class ScrewMove : MonoBehaviour
     Vector2 deltaPosition;
 
     Vector2 startPosition;
+    float startZ;
     float moveTick;
     // Start is called before the first frame update
     void Start()
     {
         startPosition = transform.position;
+        startZ = transform.position.z;
     }
 
     // Update is called once per frame
@@ -32,5 +34,6 @@ public class ScrewMove : MonoBehaviour
         moveTick = Mathf.Clamp(moveTick, 0.0f, 1.0f);
 
         transform.position = Vector2.Lerp(startPosition, startPosition + deltaPosition, moveTick);
+        transform.position += new Vector3(0.0f, 0.0f, startZ);
     }
 }
