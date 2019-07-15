@@ -161,7 +161,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         else {
-            walkSoundTick = 0.0f
+            walkSoundTick = 0.0f;
         }
     }
 
