@@ -40,7 +40,7 @@ public class CameraController : MonoBehaviour
         GetComponent<Camera>().orthographicSize = Mathf.Lerp(GetComponent<Camera>().orthographicSize, newSize, lerpSpeed * Time.deltaTime);
 
         transform.position = Vector2.Lerp(transform.position, point, lerpSpeed * Time.deltaTime);
-        transform.position += Vector3.forward * -10.0f;
+        transform.position += Vector3.forward * -30.0f;
 
         float xDif = cameraStartX - transform.position.x;
         background.transform.localPosition = new Vector3(xDif * parallaxScale, 10.0f, 200.0f);
