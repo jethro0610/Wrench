@@ -520,7 +520,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   linkedScrew: {fileID: 1154169526}
   moveSpeed: 1
-  moveBackSpeed: 0.1
+  moveBackSpeed: 0.3
   deltaPosition: {x: 0, y: -400}
 --- !u!4 &1025951656 stripped
 Transform:
@@ -898,11 +898,6 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 4444666816420803804, guid: be048d5565201f94cabc869e38be961a,
-        type: 3}
-      propertyPath: m_Radius
-      value: 10
-      objectReference: {fileID: 0}
     - target: {fileID: 4444666817026456331, guid: be048d5565201f94cabc869e38be961a,
         type: 3}
       propertyPath: m_LocalRotation.x
@@ -1267,7 +1262,7 @@ PrefabInstance:
     - target: {fileID: 3611915762677597037, guid: ce020ca725a7d5e4986f88093638e8f4,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.7724152
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 3611915762677597037, guid: ce020ca725a7d5e4986f88093638e8f4,
         type: 3}

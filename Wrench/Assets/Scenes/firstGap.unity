@@ -1234,7 +1234,7 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2093892196}
-  m_Text: 'Rlease your wrench while
+  m_Text: 'Release your wrench while
 
     magneting to retain momentum!'
   m_OffsetZ: 0

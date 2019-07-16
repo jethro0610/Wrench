@@ -37,6 +37,7 @@ Transform:
   m_Children:
   - {fileID: 8600378790420285246}
   - {fileID: 5167385742400299161}
+  - {fileID: 6896022629841495882}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -121,6 +122,7 @@ MonoBehaviour:
   jumpSound: {fileID: 8835700076299010728}
   throwSound: {fileID: 2845296969190424067}
   magnetSound: {fileID: 3906180847136061988}
+  throwPositionMarker: {fileID: 8241387666775646749}
   camera: {fileID: 1946144722118366633}
 --- !u!82 &2226771585072522183
 AudioSource:
@@ -737,6 +739,36 @@ MonoBehaviour:
   player: {fileID: 3611915762677597027}
   wrench: {fileID: 3611915762004412771}
   background: {fileID: 1755714699024954165}
+--- !u!1 &8241387666775646749
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6896022629841495882}
+  m_Layer: 0
+  m_Name: Throw Marker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6896022629841495882
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8241387666775646749}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 3611915762677597037}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1742311630503164938
 PrefabInstance:
   m_ObjectHideFlags: 0

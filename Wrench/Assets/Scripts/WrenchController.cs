@@ -26,7 +26,7 @@ public class WrenchController : MonoBehaviour
 
     float returnSpeed;
 
-    public Vector2 throwPosition { get; private set; }
+    public Transform throwPosition { get; private set; }
 
     public GameObject attachedObject { get; private set; }
 
@@ -104,9 +104,9 @@ public class WrenchController : MonoBehaviour
         if (wrenchState == WrenchState.Throw) {
             rigidbody.rotation -= -100.0f;
 
-            rigidbody.position += GetDirectionTowardsLocation(throwPosition) * maxThrowSpeed;
-            attachRotation = GetLookRotation2D(throwPosition);
-            if(Vector2.Distance(rigidbody.position, throwPosition) < 30.0f) {
+            rigidbody.position += GetDirectionTowardsLocation(throwPosition.position) * maxThrowSpeed;
+            attachRotation = GetLookRotation2D(throwPosition.position);
+            if(Vector2.Distance(rigidbody.position, throwPosition.position) < 30.0f) {
                 EndThrow();
             }
         }
@@ -117,7 +117,7 @@ public class WrenchController : MonoBehaviour
             rigidbody.rotation = Quaternion.Lerp(transform.rotation, GetLookAwayRotation2D(owningPlayer.transform.position), 1.0f - (throwEndSpeed / maxThrowSpeed)).eulerAngles.z;
 
             rigidbody.position += throwEndDirection * throwEndSpeed;
-            attachRotation = GetLookRotation2D(throwPosition);
+            attachRotation = GetLookRotation2D(throwPosition.position);
             if (throwEndSpeed < 0.25f) {
                 StartReturn();
             }
@@ -129,7 +129,7 @@ public class WrenchController : MonoBehaviour
             rigidbody.rotation = Quaternion.Lerp(transform.rotation, GetLookAwayRotation2D(owningPlayer.transform.position), 0.5f).eulerAngles.z;
 
             rigidbody.position += GetDirectionTowardsLocation(owningPlayer.transform.position) * returnSpeed;
-            attachRotation = GetLookAwayRotation2D(throwPosition);
+            attachRotation = GetLookAwayRotation2D(throwPosition.position);
             if (Vector2.Distance(rigidbody.position, owningPlayer.transform.position) < returnSpeed/2.0f) {
                 ParentToPlayer();
                 owningPlayer.camera.GetComponentInParent<CameraController>().ShakeForSeconds(0.1f, 5.0f);
@@ -142,10 +142,10 @@ public class WrenchController : MonoBehaviour
         return (Location - (Vector2)transform.position).normalized;
     }
 
-    public void Throw(Vector2 newThrowPosition) {
+    public void Throw(Transform newthrowPosition) {
         if (wrenchState == WrenchState.WithPlayer) {
             transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
-            throwPosition = newThrowPosition;
+            throwPosition = newthrowPosition;
             transform.parent = null;
             wrenchState = WrenchState.Throw;
             owningPlayer.PlayThrowSound();
@@ -157,7 +157,7 @@ public class WrenchController : MonoBehaviour
         if(wrenchState == WrenchState.Throw) {
             wrenchState = WrenchState.ThrowEnd;
             throwEndSpeed = maxThrowSpeed;
-            throwEndDirection = GetDirectionTowardsLocation(throwPosition);
+            throwEndDirection = GetDirectionTowardsLocation(throwPosition.position);
         }
     }
 

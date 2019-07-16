@@ -46,6 +46,9 @@ public class PlayerController : MonoBehaviour
 
     Vector2 spawnPos;
 
+    [SerializeField]
+    GameObject throwPositionMarker;
+
     float groundAcceleration {
         get {
             return (maxMoveSpeed * groundFriction) / (-groundFriction + 1.0f);
@@ -89,6 +92,7 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        throwPositionMarker.transform.parent = null;
         camera.transform.parent.transform.parent = null;
         controlledWrench = GetComponentInChildren<WrenchController>();
         collider = GetComponent<BoxCollider2D>();
@@ -195,12 +199,13 @@ public class PlayerController : MonoBehaviour
         }
 
         if (Input.GetButtonDown("Fire1")) {
-            Vector2 throwPosition;
+            Transform throwPosition;
             if(wrenchTarget != null) {
-                throwPosition = wrenchTarget.transform.position;
+                throwPosition = wrenchTarget.transform;
             }
             else {
-                throwPosition = (Vector2)transform.position + (aimVector * throwDistance);
+                throwPositionMarker.transform.position = (Vector2)transform.position + (aimVector * throwDistance);
+                throwPosition = throwPositionMarker.transform;
             }
             
             controlledWrench.Throw(throwPosition);
